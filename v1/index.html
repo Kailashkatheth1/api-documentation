@@ -206,10 +206,11 @@ $ curl https://api.dribbble.com/v1/user/followers?page=2&amp;per_page=100
 <p>The pagination info is included in <a href="http://tools.ietf.org/html/rfc5988">the Link
 header</a>. It is possible for some resources
 in the future to not be paginated based on page number, so it is important to
-follow these Link header values instead of constructing your own URLs.</p>
+follow these Link header values instead of constructing your own URLs. For
+example, when requesting the second page the following headers may be provided:</p>
 
 <pre><code>Link: &lt;https://api.dribbble.com/v1/user/followers?page=1&amp;per_page=100&gt;; rel="prev",
-  &lt;https://api.dribbble.com/v1/user/followers?page=2&amp;per_page=100&gt;; rel="next"
+  &lt;https://api.dribbble.com/v1/user/followers?page=3&amp;per_page=100&gt;; rel="next"
 </code></pre>
 
 <p>The possible <code>rel</code> values are:</p>
