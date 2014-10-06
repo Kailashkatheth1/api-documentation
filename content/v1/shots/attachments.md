@@ -43,6 +43,8 @@ support](https://dribbble.com/contact?api).
 
     GET /shots/:shot/attachments/:id
 
+A `thumbnail_url` is only present for image attachments.
+
 ### Response
 
 <%= headers 200 %>

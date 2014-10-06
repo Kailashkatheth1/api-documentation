@@ -161,6 +161,7 @@ module Dribbble
       ATTACHMENT = {
         id: 206165,
         url: "https://d13yacurqjgara.cloudfront.net/users/1/screenshots/1412410/attachments/206165/weathered-ball-detail.jpg",
+        thumbnail_url: "https://d13yacurqjgara.cloudfront.net/users/1/screenshots/1412410/attachments/206165/thumbnail/weathered-ball-detail.jpg",
         size: 116375,
         content_type: "image/jpeg",
         views_count: 325,
