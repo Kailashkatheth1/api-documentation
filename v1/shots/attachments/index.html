@@ -60,6 +60,7 @@ X-RateLimit-Remaining: 59</code></pre>
   <span class="p">{</span>
     <span class="s2">"id"</span> <span class="o">:</span> <span class="mi">206165</span><span class="p">,</span>
     <span class="s2">"url"</span> <span class="o">:</span> <span class="s2">"https://d13yacurqjgara.cloudfront.net/users/1/screenshots/1412410/attachments/206165/weathered-ball-detail.jpg"</span><span class="p">,</span>
+    <span class="s2">"thumbnail_url"</span> <span class="o">:</span> <span class="s2">"https://d13yacurqjgara.cloudfront.net/users/1/screenshots/1412410/attachments/206165/thumbnail/weathered-ball-detail.jpg"</span><span class="p">,</span>
     <span class="s2">"size"</span> <span class="o">:</span> <span class="mi">116375</span><span class="p">,</span>
     <span class="s2">"content_type"</span> <span class="o">:</span> <span class="s2">"image/jpeg"</span><span class="p">,</span>
     <span class="s2">"views_count"</span> <span class="o">:</span> <span class="mi">325</span><span class="p">,</span>
@@ -113,6 +114,8 @@ X-RateLimit-Remaining: 59</code></pre>
 <pre><code>GET /shots/:shot/attachments/:id
 </code></pre>
 
+<p>A <code>thumbnail_url</code> is only present for image attachments.</p>
+
 <h3 id="response-2">Response</h3>
 
 <pre class="headers"><code>Status: 200 OK
@@ -122,6 +125,7 @@ X-RateLimit-Remaining: 59</code></pre>
 <pre><code class="language-javascript"><span class="p">{</span>
   <span class="s2">"id"</span> <span class="o">:</span> <span class="mi">206165</span><span class="p">,</span>
   <span class="s2">"url"</span> <span class="o">:</span> <span class="s2">"https://d13yacurqjgara.cloudfront.net/users/1/screenshots/1412410/attachments/206165/weathered-ball-detail.jpg"</span><span class="p">,</span>
+  <span class="s2">"thumbnail_url"</span> <span class="o">:</span> <span class="s2">"https://d13yacurqjgara.cloudfront.net/users/1/screenshots/1412410/attachments/206165/thumbnail/weathered-ball-detail.jpg"</span><span class="p">,</span>
   <span class="s2">"size"</span> <span class="o">:</span> <span class="mi">116375</span><span class="p">,</span>
   <span class="s2">"content_type"</span> <span class="o">:</span> <span class="s2">"image/jpeg"</span><span class="p">,</span>
   <span class="s2">"views_count"</span> <span class="o">:</span> <span class="mi">325</span><span class="p">,</span>
