@@ -9,7 +9,7 @@ title: Projects - Shots
 
 ## List shots for a project
 
-    GET /project/:id/shots
+    GET /projects/:id/shots
 
 ### Response
 
