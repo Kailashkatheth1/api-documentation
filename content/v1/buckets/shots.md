@@ -9,7 +9,7 @@ title: Buckets - Shots
 
 ## List shots for a bucket
 
-    GET /bucket/:id/shots
+    GET /buckets/:id/shots
 
 ### Response
 
