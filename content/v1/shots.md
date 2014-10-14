@@ -50,9 +50,10 @@ title: Shots
           <li><code>week</code></li>
           <li><code>month</code></li>
           <li><code>year</code></li>
+          <li><code>ever</code></li>
         </ul>
 
-        <strong>Default:</strong> Results from any time period.
+        <strong>Default:</strong> Results from now.
       </td>
     </tr>
     <tr>
