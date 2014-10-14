@@ -53,6 +53,8 @@ title: Shots
           <li><code>ever</code></li>
         </ul>
 
+        Note that the value is ignored when sorting with <code>recent</code>.<br><br>
+
         <strong>Default:</strong> Results from now.
       </td>
     </tr>
