@@ -100,6 +100,7 @@ module Dribbble
         updated_at: "2012-03-15T02:12:57Z",
         html_url: "https://dribbble.com/shots/471756-Sasquatch",
         attachments_url: "https://api.dribbble.com/v1/shots/471756/attachments",
+        buckets_url: "https://api.dribbble.com/v1/shots/471756/buckets",
         comments_url: "https://api.dribbble.com/v1/shots/471756/comments",
         likes_url: "https://api.dribbble.com/v1/shots/471756/likes",
         projects_url: "https://api.dribbble.com/v1/shots/471756/projects",
