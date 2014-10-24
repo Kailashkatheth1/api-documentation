@@ -75,7 +75,6 @@ module Dribbble
         following_url: "https://dribbble.com/v1/users/39/following",
         likes_url: "https://dribbble.com/v1/users/39/likes",
         shots_url: "https://dribbble.com/v1/users/39/shots",
-        teams_url: "https://dribbble.com/v1/users/39/teams",
         created_at: "2009-08-18T18:34:31Z",
         updated_at: "2014-02-14T22:32:11Z"
       }
