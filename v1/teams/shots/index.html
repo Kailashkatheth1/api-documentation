@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title>Projects - Shots | Dribbble API</title>
+  <title>Teams - Shots | Dribbble API</title>
 
   <link href="/css/application.css" rel="stylesheet" type="text/css">
 
@@ -39,13 +39,15 @@
 <h1 id="shots">Shots</h1>
 
 <ul id="markdown-toc">
-  <li><a href="#list-shots-for-a-project">List shots for a project</a></li>
+  <li><a href="#list-shots-for-a-team">List shots for a team</a></li>
 </ul>
 
-<h2 id="list-shots-for-a-project">List shots for a project</h2>
+<h2 id="list-shots-for-a-team">List shots for a team</h2>
 
-<pre><code>GET /projects/:id/shots
+<pre><code>GET /teams/:team/shots
 </code></pre>
+
+<p>List shots by the team <strong>and</strong> team members.</p>
 
 <h3 id="response">Response</h3>
 
@@ -112,33 +114,6 @@ X-RateLimit-Remaining: 59</code></pre>
       <span class="s2">"teams_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/v1/users/1/teams"</span><span class="p">,</span>
       <span class="s2">"created_at"</span> <span class="o">:</span> <span class="s2">"2009-07-08T02:51:22Z"</span><span class="p">,</span>
       <span class="s2">"updated_at"</span> <span class="o">:</span> <span class="s2">"2014-02-22T17:10:33Z"</span>
-    <span class="p">},</span>
-    <span class="s2">"team"</span> <span class="o">:</span> <span class="p">{</span>
-      <span class="s2">"id"</span> <span class="o">:</span> <span class="mi">39</span><span class="p">,</span>
-      <span class="s2">"name"</span> <span class="o">:</span> <span class="s2">"Dribbble"</span><span class="p">,</span>
-      <span class="s2">"username"</span> <span class="o">:</span> <span class="s2">"dribbble"</span><span class="p">,</span>
-      <span class="s2">"html_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/dribbble"</span><span class="p">,</span>
-      <span class="s2">"avatar_url"</span> <span class="o">:</span> <span class="s2">"https://d13yacurqjgara.cloudfront.net/users/39/avatars/normal/apple-flat-precomposed.png?1388527574"</span><span class="p">,</span>
-      <span class="s2">"bio"</span> <span class="o">:</span> <span class="s2">"Show and tell for designers. This is Dribbble on Dribbble."</span><span class="p">,</span>
-      <span class="s2">"location"</span> <span class="o">:</span> <span class="s2">"Salem, MA"</span><span class="p">,</span>
-      <span class="s2">"links"</span> <span class="o">:</span> <span class="p">{</span>
-        <span class="s2">"web"</span> <span class="o">:</span> <span class="s2">"http://dribbble.com"</span><span class="p">,</span>
-        <span class="s2">"twitter"</span> <span class="o">:</span> <span class="s2">"https://twitter.com/dribbble"</span>
-      <span class="p">},</span>
-      <span class="s2">"followers_count"</span> <span class="o">:</span> <span class="mi">25011</span><span class="p">,</span>
-      <span class="s2">"followings_count"</span> <span class="o">:</span> <span class="mi">6120</span><span class="p">,</span>
-      <span class="s2">"likes_count"</span> <span class="o">:</span> <span class="mi">44</span><span class="p">,</span>
-      <span class="s2">"shots_count"</span> <span class="o">:</span> <span class="mi">91</span><span class="p">,</span>
-      <span class="s2">"type"</span> <span class="o">:</span> <span class="s2">"Team"</span><span class="p">,</span>
-      <span class="s2">"pro"</span> <span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
-      <span class="s2">"buckets_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/v1/users/39/buckets"</span><span class="p">,</span>
-      <span class="s2">"followers_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/v1/users/39/followers"</span><span class="p">,</span>
-      <span class="s2">"following_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/v1/users/39/following"</span><span class="p">,</span>
-      <span class="s2">"likes_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/v1/users/39/likes"</span><span class="p">,</span>
-      <span class="s2">"shots_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/v1/users/39/shots"</span><span class="p">,</span>
-      <span class="s2">"team_shots_url"</span> <span class="o">:</span> <span class="s2">"https://dribbble.com/v1/users/39/teams"</span><span class="p">,</span>
-      <span class="s2">"created_at"</span> <span class="o">:</span> <span class="s2">"2009-08-18T18:34:31Z"</span><span class="p">,</span>
-      <span class="s2">"updated_at"</span> <span class="o">:</span> <span class="s2">"2014-02-14T22:32:11Z"</span>
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="p">]</span></code></pre>
