@@ -72,6 +72,7 @@ module Dribbble
         pro: false,
         buckets_url: "https://dribbble.com/v1/users/39/buckets",
         followers_url: "https://dribbble.com/v1/users/39/followers",
+        following_url: "https://dribbble.com/v1/users/39/following",
         likes_url: "https://dribbble.com/v1/users/39/likes",
         shots_url: "https://dribbble.com/v1/users/39/shots",
         teams_url: "https://dribbble.com/v1/users/39/teams",
