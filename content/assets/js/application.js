@@ -23,4 +23,18 @@
       item.className += " expanded";
     }
   }
+
+  var toggles = nav.querySelectorAll("a:not([href])");
+
+  for (var index = 0; index < toggles.length; index++) {
+    toggles[index].addEventListener("click", function(event) {
+      var parent = event.srcElement.parentNode;
+
+      if (parent.className.match(/active/)) {
+        parent.className = "collapsed";
+      } else {
+        parent.className = "active expanded";
+      }
+    });
+  }
 })();
