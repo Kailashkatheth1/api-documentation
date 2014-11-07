@@ -19,10 +19,10 @@
 
       <nav>
         <ol>
-          <% changes.first(10).each do |change| %>
+          <% entries_for("change").first(10).each do |change| %>
             <li>
               <a href="<%= change.path %>"><%= change[:title] %></a>
-              <span class="date"><%= change_date change %></span>
+              <span class="date"><%= pretty_date change %></span>
             </li>
           <% end %>
         </ol>

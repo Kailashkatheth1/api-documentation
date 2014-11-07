@@ -1,0 +1,34 @@
+<%= render "head", active: "blog" %>
+
+<section>
+  <div class="container">
+    <article>
+      <% if @item.identifier == "/blog/" %>
+        <%= yield %>
+      <% else %>
+        <div class="post" id="<%= @item.path %>">
+          <%= render "_meta", item: @item %>
+
+          <%= yield %>
+        </div>
+      <% end %>
+    </article>
+
+    <aside class="posts">
+      <h1>Recent Posts</h1>
+
+      <nav>
+        <ol>
+          <% entries_for("post").first(10).each do |post| %>
+            <li>
+              <a href="<%= post.path %>"><%= post[:title] %></a>
+              <span class="date"><%= pretty_date post %></span>
+            </li>
+          <% end %>
+        </ol>
+      </nav>
+    </aside>
+  </div>
+</section>
+
+<%= render "footer" %>

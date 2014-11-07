@@ -2,7 +2,7 @@
 
 <ul class="meta">
   <li class="published">
-    <%= change_date @item %>
+    <%= pretty_date @item %>
   </li>
   <li class="author">
     <a href="https://dribbble.com/<%= @item[:author] %>"><%= name_for(@item[:author]) %></a>

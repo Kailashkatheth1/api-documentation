@@ -1,4 +1,4 @@
-module ChangesHelper
+module MetaHelper
   DEFAULT_DATE_FORMAT = "%B %-d, %Y".freeze
   USERNAMES_TO_NAMES  = {
     "simplebits"  => "Dan Cederholm",
@@ -7,9 +7,9 @@ module ChangesHelper
     "pbyrne"      => "Patrick Byrne"
   }.freeze
 
-  def changes
-    changes = @items.select { |item| item[:kind] == "change" }
-    changes.sort do |x, y|
+  def entries_for(kind)
+    entries = @items.select { |item| item[:kind] == kind }
+    entries.sort do |x, y|
       attribute_to_time(y[:created_at]) <=> attribute_to_time(x[:created_at])
     end
   end
@@ -18,7 +18,7 @@ module ChangesHelper
     USERNAMES_TO_NAMES[username]
   end
 
-  def change_date(item)
+  def pretty_date(item)
     time = attribute_to_time(item[:created_at])
     time.strftime(DEFAULT_DATE_FORMAT)
   end

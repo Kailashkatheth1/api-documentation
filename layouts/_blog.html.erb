@@ -1,0 +1,7 @@
+<% @posts.each do |post| %>
+  <div class="post" id="<%= post.path %>">
+    <%= render "_meta", item: post %>
+
+    <%= post.compiled_content %>
+  </div>
+<% end %>

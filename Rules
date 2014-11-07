@@ -15,14 +15,19 @@ compile "CNAME" do
 end
 
 { "/v1/*"      => "api",
+  "/blog/*"    => "blog",
   "/terms/*"   => "terms",
   "/changes/*" => "changes",
   "*"          => "default"
 }.each do |path, default_layout|
   compile(path) do
     filter :erb
+    filter :fenced_code_block if default_layout == "blog"
     filter :kramdown, toc_levels: [2]
-    filter :colorize_syntax, colorizers: { javascript: :pygmentsrb }
+    filter :colorize_syntax, colorizers: {
+      javascript: :pygmentsrb,
+      ruby: :pygmentsrb
+    }
 
     unless item[:layout] == false
       layout item[:layout] || default_layout

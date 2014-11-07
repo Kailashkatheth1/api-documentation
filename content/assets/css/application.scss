@@ -210,7 +210,9 @@ section {
       }
     }
 
+    .post,
     .change {
+      & + .post,
       & + .change {
         margin-top: 48px;
       }
@@ -224,6 +226,18 @@ section {
           &:hover {
             color: #4083A9;
           }
+        }
+      }
+
+      h2 {
+        margin-bottom: 0;
+
+        & + p {
+          margin-top: 4px;
+        }
+
+        & + .highlight {
+          margin-top: 8px;
         }
       }
 
@@ -339,6 +353,7 @@ section aside {
     border-radius: 4px;
   }
 
+  &.posts,
   &.changes {
     h1 {
       font-size: 22px;
@@ -347,6 +362,10 @@ section aside {
     ol {
       margin: 8px 0 0 20px;
       list-style: decimal;
+
+      li {
+        margin: 0 0 8px 0;
+      }
 
       span {
         font-size: 12px;
