@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>HTML Email</title>
+
+  <link href="/css/application.css" rel="stylesheet" type="text/css">
+
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="alternate" type="application/atom+xml" title="API Changes" href="/changes.atom">
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>
+      <a href="http://dribbble.com" id="logo">Dribbble</a>
+      <span id="logo-meta"><a href="/">Developer</a></span>
+    </h1>
+
+    <nav>
+      <ul>
+        <li><a href="/v1/">API</a></li>
+        <li><a href="/terms/">Terms &amp; Guidelines</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/changes/">Changes</a></li>
+        <li><a href="http://dribbble.com/contact?api">Support</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<section>
+  <div class="container">
+    <article>
+      
+        <div class="post" id="/blog/2014-06-13-html-email/">
+          <h1><a href="/blog/2014-06-13-html-email/">HTML Email</a></h1>
+
+<ul class="meta">
+  <li class="published">
+    June 13, 2014
+  </li>
+  <li class="author">
+    <a href="https://dribbble.com/pbyrne">Patrick Byrne</a>
+  </li>
+</ul>
+
+
+          
+<p>We recently added HTML versions of many of our email notifications. These new
+emails are much nicer to look at and give us flexibility to provide more
+information and context without overwhelming the message by using CSS to
+emphasize the most important information. Response from our members has been
+very positive, and we’ll be continuing the rollout to the rest of our
+notifications. However, the road to get from plain-text emails to HTML emails
+was fraught with peril, so I want to share some of the lessons that we learned.</p>
+
+<h2 id="its-html-i-know-this">It’s HTML, I Know This</h2>
+
+<p>At first glance, adding HTML to your email seems pretty simple. Your website is
+already HTML, you’re really good at working with it, so how hard could it be?
+As it happens, it’s harder than you expect. For one thing, you have to forget
+all of the lessons you’ve learned over the past decade about semantic markup
+and new whizz-bang HTML5 and CSS3 features.</p>
+
+<p>The simple fact is that HTML rendering across email clients is confusing and
+inconsistent. The current best practices remind me quite a bit of web design in
+the last 90’s and early 2000’s: tables nested inside tables. Don’t believe me?
+See what MailChimp <a href="http://templates.mailchimp.com/development/html/">has to say</a> on the matter:</p>
+
+<blockquote>
+  <p>If there’s only one thing you to know about coding email, it’s that tables
+rule the day.</p>
+</blockquote>
+
+<p>MailChimp helpfully provides <a href="https://github.com/mailchimp/Email-Blueprints">some battle-tested templates</a> to
+start with. <a href="https://dribbble.com/simplebits">Dan Cederholm</a> started from
+there, designed a Dribbble-branded base template, and designed several
+different notifications using that template.  He built them as ERB templates
+with static markup and handed them off to me to plug in the necessary Ruby to
+populate them.</p>
+
+<h2 id="the-tests-are-failing">The Tests Are Failing</h2>
+
+<p>Before even adding tests for the HTML portion of the emails, our tests on the
+plain-text versions began to fail. Our tests for the emails look something like
+this:</p>
+
+<pre class="highlight"><code class="language-ruby"><span class="n">mail</span> <span class="o">=</span> <span class="no">Notifier</span><span class="o">.</span><span class="n">comment_notification</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+<span class="n">assert_match</span> <span class="n">user_url</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="p">),</span> <span class="n">mail</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">to_s</span></code></pre>
+
+<p>Up until this point, <code>mail.body.to_s</code> would return the text of the email. Once
+you add a second ActionMailer template, that stops being true. Hopping into a
+console, I discovered that <code>mail.body.to_s</code> was now an empty string. What? Some
+more poking around led me to <code>mail.body.parts</code> which was an array of the
+plain-text email and the HTML email template, and <code>mail.text_part</code> and
+<code>mail.html_part</code> which would give me exactly the portion of the email I wanted
+to test.</p>
+
+<p>Emboldened by my newfound knowledge, I built a new test helper:</p>
+
+<pre class="highlight"><code class="language-ruby"><span class="k">def</span> <span class="nf">assert_text</span><span class="p">(</span><span class="n">mail</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+  <span class="n">assert_match</span> <span class="n">value</span><span class="p">,</span> <span class="n">mail</span><span class="o">.</span><span class="n">text_part</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">to_s</span>
+<span class="k">end</span>
+
+<span class="c1"># now the test looks like this</span>
+<span class="n">mail</span> <span class="o">=</span> <span class="no">Notifier</span><span class="o">.</span><span class="n">comment_notification</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+<span class="n">assert_text</span> <span class="n">mail</span><span class="p">,</span> <span class="n">user_url</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="p">)</span></code></pre>
+
+<p>Strangely, this test helper, which worked for emails with both plain-text and
+HTML templates, failed for our emails with just plain text. For those emails,
+<code>mail.text_part</code> was nil. Again, what? This necessitated building a
+more-complex method to fetch the text that I wanted to test:</p>
+
+<pre class="highlight"><code class="language-ruby"><span class="k">def</span> <span class="nf">assert_text</span><span class="p">(</span><span class="n">mail</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+  <span class="n">assert_match</span> <span class="n">value</span><span class="p">,</span> <span class="n">extract_content_of_type</span><span class="p">(</span><span class="n">mail</span><span class="p">,</span> <span class="ss">:text</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">extract_content_of_type</span><span class="p">(</span><span class="n">mail</span><span class="p">,</span> <span class="n">type</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">mail</span><span class="o">.</span><span class="n">parts</span><span class="o">.</span><span class="n">any?</span>
+    <span class="c1"># with multiple parts, grab the one of the given type</span>
+    <span class="n">matching_part</span> <span class="o">=</span> <span class="n">mail</span><span class="o">.</span><span class="n">public_send</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="n">type</span><span class="si">}</span><span class="s2">_part"</span><span class="p">)</span>
+    <span class="n">assert</span> <span class="n">matching_part</span><span class="p">,</span> <span class="s2">"Must have a part with type '</span><span class="si">#{</span><span class="n">type</span><span class="si">}</span><span class="s2">'"</span>
+    <span class="n">matching_part</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">to_s</span>
+  <span class="k">else</span>
+    <span class="c1"># if just one part of the email, assume it's what we want</span>
+    <span class="n">mail</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">to_s</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre>
+
+<p>With this done, tests on our plain-text emails were passing again.</p>
+
+<h2 id="testing-the-markup">Testing the Markup</h2>
+
+<p>Now I wanted to add similar tests to the HTML emails. Since they’re HTML, I
+also wanted to use the same Rails-provided assertions we had used for our
+views, such as <code>assert_select</code>. Rails doesn’t provide that out of the box, but
+some searching lead me to <a href="http://pathfindersoftware.com/2010/04/rails-email-unit-testing/">this blog post</a>, which gave me
+exactly what I wanted. I tweaked their approach slightly and ended up with
+this:</p>
+
+<pre class="highlight"><code class="language-ruby"><span class="k">def</span> <span class="nf">assert_html</span><span class="p">(</span><span class="n">mail</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+  <span class="n">root</span> <span class="o">=</span> <span class="no">HTML</span><span class="o">::</span><span class="no">Document</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">extract_content_of_type</span><span class="p">(</span><span class="n">mail</span><span class="p">,</span> <span class="ss">:html</span><span class="p">))</span><span class="o">.</span><span class="n">root</span>
+  <span class="n">assert_select</span> <span class="n">root</span><span class="p">,</span> <span class="s2">":root"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span>
+<span class="k">end</span>
+
+<span class="c1"># and the test looks like this</span>
+<span class="n">mail</span> <span class="o">=</span> <span class="no">Notifier</span><span class="o">.</span><span class="n">comment_notification</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+<span class="n">assert_html</span><span class="p">(</span><span class="n">mail</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">assert_select</span> <span class="s2">"a[href=?]"</span><span class="p">,</span> <span class="n">user_url</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+<span class="k">end</span></code></pre>
+
+<p>Now I can get started with some tests and filling in the static HTML mockup
+with Ruby to make them dynamic.</p>
+
+<h2 id="and-now-for-tests-of-a-different-color">And Now For Tests of a Different Color</h2>
+
+<p>Of course, that’s just half of the testing story. Remember what I said before
+about inconsistent rendering between email clients? We want these shiny new
+emails to look good for everybody, but testing against so many clients is hard.
+Thankfully, tools like <a href="https://litmus.com/">Litmus</a> make things easier.</p>
+
+<p>Send Litmus your HTML (or forward them an email) and they’ll run it through a
+battery of clients and provide you screenshots of how your emails render.
+Lather, rinse, and repeat until you’re happy with the results. I can’t stress
+enough how important this was, as we found a number of bugs in our email
+template and strange rendering in common clients that we were able to correct
+before any of our members saw them.</p>
+
+<h2 id="you-didnt-actually-want-css-in-there-did-you">You Didn’t Actually Want CSS in There, Did You?</h2>
+
+<p>As we were about to ship, we ran into a showstopper: Gmail ignores any linked
+stylesheets or <code>style</code> elements in your email. The best practice for styling
+HTML in an email is to use inline style attributes (for example <code>&lt;p style="color:
+font-size: 16px; font-weight: bold"&gt;…&lt;/p&gt;</code>).</p>
+
+<p>Unwilling to perform this madness, we went out in search for a tool which would
+automatically convert our external stylesheets to inline attributes, and found
+<a href="https://github.com/premailer/actionmailer_inline_css">actionmailer_inline_css</a>. It hooks into the ActionMailer lifecycle and runs
+the emails through <a href="https://github.com/premailer/premailer/">premailer</a> to parse the CSS and add inline styles when
+delivering. This saved us from having to muck up our code with inline styles
+and allowed us to still share CSS between our emails.</p>
+
+<h2 id="there-you-have-it">There You Have It</h2>
+
+<p>It took a bit more work than we anticipated, but we’ve been happy with the
+result and the reaction from our members has been positive. Now that we’ve laid
+the groundwork, rolling out HTML versions for the rest of our notifications
+will hopefully be easier.</p>
+
+
+        </div>
+      
+    </article>
+
+    <aside class="posts">
+      <h1>Recent Posts</h1>
+
+      <nav>
+        <ol>
+          
+            <li>
+              <a href="/blog/2014-06-13-html-email/">HTML Email</a>
+              <span class="date">June 13, 2014</span>
+            </li>
+          
+            <li>
+              <a href="/blog/2014-06-06-throttle-record-creation/">Throttle Record Creation in ActiveRecord</a>
+              <span class="date">June 6, 2014</span>
+            </li>
+          
+            <li>
+              <a href="/blog/2013-10-23-development-behind-the-design/">Development Behind the Design</a>
+              <span class="date">October 12, 2013</span>
+            </li>
+          
+        </ol>
+      </nav>
+    </aside>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Except where otherwise noted, content on this site is licensed under a <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons CC-BY license</a>.</p>
+
+    <p class="links">
+      <a href="https://dribbble.com/dribbble"><img src="/images/icon-team-dribbble.png" />Dribbble on Dribbble</a>
+      <a href="https://github.com/dribbble"><img src="/images/icon-github.png" />Dribbble on GitHub</a>
+      <a href="https://twitter.com/dribbbleapi" class="twitter"><img src="/images/icon-twitter.png" />@dribbbleapi</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-24041469-7', 'auto');
+  ga('send', 'pageview');
+</script>
+
+</body>
+</html>
+

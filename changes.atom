@@ -2,13 +2,25 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>http://developer.dribbble.com/</id>
   <title>Dribbble API Changes</title>
-  <updated>2014-10-29T14:30:00Z</updated>
+  <updated>2014-11-11T08:30:00Z</updated>
   <link rel="alternate" href="http://developer.dribbble.com/">
   <link rel="self" href="http://developer.dribbble.com/changes.atom">
   <author>
     <name>dribbble</name>
     <uri>https://dribbble.com</uri>
   </author>
+  <entry>
+    <id>tag:developer.dribbble.com,2014-11-11:/changes/2014-11-11-team-members/</id>
+    <title type="html">Team Members</title>
+    <published>2014-11-11T08:30:00Z</published>
+    <updated>2014-11-11T08:30:00Z</updated>
+    <link rel="alternate" href="http://developer.dribbble.com/changes/2014-11-11-team-members/">
+    <content type="html">
+&lt;p&gt;The &lt;a href="/v1/teams/members/"&gt;team members endpoint&lt;/a&gt; allows you to retrieve the
+members on a team. As a result &lt;code&gt;members_count&lt;/code&gt; and &lt;code&gt;members_url&lt;/code&gt; attributes are
+present on a team resource.&lt;/p&gt;
+</content>
+  </entry>
   <entry>
     <id>tag:developer.dribbble.com,2014-10-29:/changes/2014-10-29-bucket-project-team-counts/</id>
     <title type="html">Bucket, Project, and Team Counts</title>

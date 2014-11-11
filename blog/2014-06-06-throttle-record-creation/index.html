@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Throttle Record Creation in ActiveRecord</title>
+
+  <link href="/css/application.css" rel="stylesheet" type="text/css">
+
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="alternate" type="application/atom+xml" title="API Changes" href="/changes.atom">
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>
+      <a href="http://dribbble.com" id="logo">Dribbble</a>
+      <span id="logo-meta"><a href="/">Developer</a></span>
+    </h1>
+
+    <nav>
+      <ul>
+        <li><a href="/v1/">API</a></li>
+        <li><a href="/terms/">Terms &amp; Guidelines</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/changes/">Changes</a></li>
+        <li><a href="http://dribbble.com/contact?api">Support</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<section>
+  <div class="container">
+    <article>
+      
+        <div class="post" id="/blog/2014-06-06-throttle-record-creation/">
+          <h1><a href="/blog/2014-06-06-throttle-record-creation/">Throttle Record Creation in ActiveRecord</a></h1>
+
+<ul class="meta">
+  <li class="published">
+    June 6, 2014
+  </li>
+  <li class="author">
+    <a href="https://dribbble.com/tristandunn">Tristan Dunn</a>
+  </li>
+</ul>
+
+
+          
+<p>Throttling the creation of records is a component of our spam protection at
+Dribbble. There’s no sane reason for a user to create more than 10 comments in
+two minutes, or more than 100 comments in one day. We’ve had a method for
+setting these types of limits for a while, but we’ve extracted it into an
+open-source library, <a href="https://github.com/dribbble/allowed">allowed</a>.</p>
+
+<h2 id="example-usage">Example Usage</h2>
+
+<pre class="highlight"><code class="language-ruby"><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">belongs_to</span> <span class="ss">:screenshot</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span>
+
+  <span class="c1"># Custom scopes beyond default created_at attribute.</span>
+  <span class="n">allow</span> <span class="mi">10</span><span class="p">,</span> <span class="ss">per</span><span class="p">:</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">scope</span><span class="p">:</span> <span class="ss">:user_id</span>
+  <span class="n">allow</span> <span class="mi">5</span><span class="p">,</span>  <span class="ss">per</span><span class="p">:</span> <span class="mi">1</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="ss">scope</span><span class="p">:</span> <span class="o">[</span><span class="ss">:screenshot_id</span><span class="p">,</span> <span class="ss">:user_id</span><span class="o">]</span>
+
+  <span class="c1"># Custom error message.</span>
+  <span class="n">allow</span> <span class="mi">100</span><span class="p">,</span> <span class="ss">per</span><span class="p">:</span> <span class="mi">7</span><span class="o">.</span><span class="n">days</span><span class="p">,</span> <span class="ss">message</span><span class="p">:</span> <span class="s2">"Too many comments this week."</span>
+
+  <span class="c1"># Custom conditions.</span>
+  <span class="n">allow</span> <span class="mi">100</span><span class="p">,</span> <span class="ss">per</span><span class="p">:</span> <span class="mi">7</span><span class="o">.</span><span class="n">days</span><span class="p">,</span> <span class="k">unless</span><span class="p">:</span> <span class="ss">:whitelisted_user?</span>
+  <span class="n">allow</span> <span class="mi">100</span><span class="p">,</span> <span class="ss">per</span><span class="p">:</span> <span class="mi">7</span><span class="o">.</span><span class="n">days</span><span class="p">,</span> <span class="k">unless</span><span class="p">:</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="p">{</span> <span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">admin?</span> <span class="p">}</span>
+
+  <span class="c1"># Callbacks when limit is reached.</span>
+  <span class="n">allow</span> <span class="mi">10</span><span class="p">,</span> <span class="ss">per</span><span class="p">:</span> <span class="mi">2</span><span class="o">.</span><span class="n">minutes</span><span class="p">,</span> <span class="ss">callback</span><span class="p">:</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="p">{</span> <span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">suspend!</span> <span class="p">}</span>
+  <span class="n">allow</span> <span class="mi">25</span><span class="p">,</span> <span class="ss">per</span><span class="p">:</span> <span class="mi">5</span><span class="o">.</span><span class="n">minutes</span> <span class="k">do</span> <span class="o">|</span><span class="n">comment</span><span class="o">|</span>
+    <span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">suspend!</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">whitelisted_user?</span>
+    <span class="n">user</span><span class="o">.</span><span class="n">whitelisted?</span> <span class="o">||</span> <span class="n">screenshot</span><span class="o">.</span><span class="n">user</span> <span class="o">==</span> <span class="n">user</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre>
+
+<h2 id="future-development">Future Development</h2>
+
+<p>Now that we’ve extracted it to make it a bit easier to work with, we’d like to
+support different methods of checking throttles. For example, a week long check
+would be better served using Redis over ActiveRecord. It helps to avoid extra
+queries on save for a rare condition that may never be met and it’s less
+important to be perfectly accurate, so it doesn’t matter if we lose the count.</p>
+
+
+        </div>
+      
+    </article>
+
+    <aside class="posts">
+      <h1>Recent Posts</h1>
+
+      <nav>
+        <ol>
+          
+            <li>
+              <a href="/blog/2014-06-13-html-email/">HTML Email</a>
+              <span class="date">June 13, 2014</span>
+            </li>
+          
+            <li>
+              <a href="/blog/2014-06-06-throttle-record-creation/">Throttle Record Creation in ActiveRecord</a>
+              <span class="date">June 6, 2014</span>
+            </li>
+          
+            <li>
+              <a href="/blog/2013-10-23-development-behind-the-design/">Development Behind the Design</a>
+              <span class="date">October 12, 2013</span>
+            </li>
+          
+        </ol>
+      </nav>
+    </aside>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Except where otherwise noted, content on this site is licensed under a <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons CC-BY license</a>.</p>
+
+    <p class="links">
+      <a href="https://dribbble.com/dribbble"><img src="/images/icon-team-dribbble.png" />Dribbble on Dribbble</a>
+      <a href="https://github.com/dribbble"><img src="/images/icon-github.png" />Dribbble on GitHub</a>
+      <a href="https://twitter.com/dribbbleapi" class="twitter"><img src="/images/icon-twitter.png" />@dribbbleapi</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-24041469-7', 'auto');
+  ga('send', 'pageview');
+</script>
+
+</body>
+</html>
+
