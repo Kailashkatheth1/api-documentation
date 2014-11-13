@@ -9,7 +9,12 @@
 
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="alternate" type="application/atom+xml" title="API Changes" href="/changes.atom">
+
+  <% if @active == "blog" %>
+    <link rel="alternate" type="application/atom+xml" title="Developer Blog" href="/blog.atom">
+  <% elsif @active == "changes" %>
+    <link rel="alternate" type="application/atom+xml" title="API Changes" href="/changes.atom">
+  <% end %>
 </head>
 <body>
 

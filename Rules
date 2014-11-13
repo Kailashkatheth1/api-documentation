@@ -35,6 +35,10 @@ end
   end
 end
 
+route '/blog/feed' do
+  '/blog.atom'
+end
+
 route '/feed' do
   '/changes.atom'
 end
