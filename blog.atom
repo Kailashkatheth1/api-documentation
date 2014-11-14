@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>http://developer.dribbble.com/</id>
+  <title>Dribbble Developer Blog</title>
+  <updated>2014-06-13T12:00:00Z</updated>
+  <link rel="alternate" href="http://developer.dribbble.com/">
+  <link rel="self" href="http://developer.dribbble.com/blog.atom">
+  <author>
+    <name>dribbble</name>
+    <uri>https://dribbble.com</uri>
+  </author>
+  <entry>
+    <id>tag:developer.dribbble.com,2014-06-13:/blog/2014-06-13-html-email/</id>
+    <title type="html">HTML Email</title>
+    <published>2014-06-13T12:00:00Z</published>
+    <updated>2014-06-13T12:00:00Z</updated>
+    <link rel="alternate" href="http://developer.dribbble.com/blog/2014-06-13-html-email/">
+    <content type="html">
+&lt;p&gt;We recently added HTML versions of many of our email notifications. These new
+emails are much nicer to look at and give us flexibility to provide more
+information and context without overwhelming the message by using CSS to
+emphasize the most important information. Response from our members has been
+very positive, and we’ll be continuing the rollout to the rest of our
+notifications. However, the road to get from plain-text emails to HTML emails
+was fraught with peril, so I want to share some of the lessons that we learned.&lt;/p&gt;
+
+&lt;h2 id="its-html-i-know-this"&gt;It’s HTML, I Know This&lt;/h2&gt;
+
+&lt;p&gt;At first glance, adding HTML to your email seems pretty simple. Your website is
+already HTML, you’re really good at working with it, so how hard could it be?
+As it happens, it’s harder than you expect. For one thing, you have to forget
+all of the lessons you’ve learned over the past decade about semantic markup
+and new whizz-bang HTML5 and CSS3 features.&lt;/p&gt;
+
+&lt;p&gt;The simple fact is that HTML rendering across email clients is confusing and
+inconsistent. The current best practices remind me quite a bit of web design in
+the last 90’s and early 2000’s: tables nested inside tables. Don’t believe me?
+See what MailChimp &lt;a href="http://templates.mailchimp.com/development/html/"&gt;has to say&lt;/a&gt; on the matter:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If there’s only one thing you to know about coding email, it’s that tables
+rule the day.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;MailChimp helpfully provides &lt;a href="https://github.com/mailchimp/Email-Blueprints"&gt;some battle-tested templates&lt;/a&gt; to
+start with. &lt;a href="https://dribbble.com/simplebits"&gt;Dan Cederholm&lt;/a&gt; started from
+there, designed a Dribbble-branded base template, and designed several
+different notifications using that template.  He built them as ERB templates
+with static markup and handed them off to me to plug in the necessary Ruby to
+populate them.&lt;/p&gt;
+
+&lt;h2 id="the-tests-are-failing"&gt;The Tests Are Failing&lt;/h2&gt;
+
+&lt;p&gt;Before even adding tests for the HTML portion of the emails, our tests on the
+plain-text versions began to fail. Our tests for the emails look something like
+this:&lt;/p&gt;
+
+&lt;pre class="highlight"&gt;&lt;code class="language-ruby"&gt;&lt;span class="n"&gt;mail&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;Notifier&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;comment_notification&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;assert_match&lt;/span&gt; &lt;span class="n"&gt;user_url&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_s&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Up until this point, &lt;code&gt;mail.body.to_s&lt;/code&gt; would return the text of the email. Once
+you add a second ActionMailer template, that stops being true. Hopping into a
+console, I discovered that &lt;code&gt;mail.body.to_s&lt;/code&gt; was now an empty string. What? Some
+more poking around led me to &lt;code&gt;mail.body.parts&lt;/code&gt; which was an array of the
+plain-text email and the HTML email template, and &lt;code&gt;mail.text_part&lt;/code&gt; and
+&lt;code&gt;mail.html_part&lt;/code&gt; which would give me exactly the portion of the email I wanted
+to test.&lt;/p&gt;
+
+&lt;p&gt;Emboldened by my newfound knowledge, I built a new test helper:&lt;/p&gt;
+
+&lt;pre class="highlight"&gt;&lt;code class="language-ruby"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;assert_text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="n"&gt;assert_match&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text_part&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_s&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;span class="c1"&gt;# now the test looks like this&lt;/span&gt;
+&lt;span class="n"&gt;mail&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;Notifier&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;comment_notification&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;assert_text&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;user_url&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Strangely, this test helper, which worked for emails with both plain-text and
+HTML templates, failed for our emails with just plain text. For those emails,
+&lt;code&gt;mail.text_part&lt;/code&gt; was nil. Again, what? This necessitated building a
+more-complex method to fetch the text that I wanted to test:&lt;/p&gt;
+
+&lt;pre class="highlight"&gt;&lt;code class="language-ruby"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;assert_text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="n"&gt;assert_match&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;extract_content_of_type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;:text&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;extract_content_of_type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;parts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;any?&lt;/span&gt;
+    &lt;span class="c1"&gt;# with multiple parts, grab the one of the given type&lt;/span&gt;
+    &lt;span class="n"&gt;matching_part&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;public_send&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="si"&gt;#{&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;_part"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;matching_part&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"Must have a part with type '&lt;/span&gt;&lt;span class="si"&gt;#{&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;'"&lt;/span&gt;
+    &lt;span class="n"&gt;matching_part&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_s&lt;/span&gt;
+  &lt;span class="k"&gt;else&lt;/span&gt;
+    &lt;span class="c1"&gt;# if just one part of the email, assume it's what we want&lt;/span&gt;
+    &lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_s&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;With this done, tests on our plain-text emails were passing again.&lt;/p&gt;
+
+&lt;h2 id="testing-the-markup"&gt;Testing the Markup&lt;/h2&gt;
+
+&lt;p&gt;Now I wanted to add similar tests to the HTML emails. Since they’re HTML, I
+also wanted to use the same Rails-provided assertions we had used for our
+views, such as &lt;code&gt;assert_select&lt;/code&gt;. Rails doesn’t provide that out of the box, but
+some searching lead me to &lt;a href="http://pathfindersoftware.com/2010/04/rails-email-unit-testing/"&gt;this blog post&lt;/a&gt;, which gave me
+exactly what I wanted. I tweaked their approach slightly and ended up with
+this:&lt;/p&gt;
+
+&lt;pre class="highlight"&gt;&lt;code class="language-ruby"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;assert_html&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;block&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;HTML&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;Document&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;extract_content_of_type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;:html&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;root&lt;/span&gt;
+  &lt;span class="n"&gt;assert_select&lt;/span&gt; &lt;span class="n"&gt;root&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;":root"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;block&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;span class="c1"&gt;# and the test looks like this&lt;/span&gt;
+&lt;span class="n"&gt;mail&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;Notifier&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;comment_notification&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;assert_html&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+  &lt;span class="n"&gt;assert_select&lt;/span&gt; &lt;span class="s2"&gt;"a[href=?]"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;user_url&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now I can get started with some tests and filling in the static HTML mockup
+with Ruby to make them dynamic.&lt;/p&gt;
+
+&lt;h2 id="and-now-for-tests-of-a-different-color"&gt;And Now For Tests of a Different Color&lt;/h2&gt;
+
+&lt;p&gt;Of course, that’s just half of the testing story. Remember what I said before
+about inconsistent rendering between email clients? We want these shiny new
+emails to look good for everybody, but testing against so many clients is hard.
+Thankfully, tools like &lt;a href="https://litmus.com/"&gt;Litmus&lt;/a&gt; make things easier.&lt;/p&gt;
+
+&lt;p&gt;Send Litmus your HTML (or forward them an email) and they’ll run it through a
+battery of clients and provide you screenshots of how your emails render.
+Lather, rinse, and repeat until you’re happy with the results. I can’t stress
+enough how important this was, as we found a number of bugs in our email
+template and strange rendering in common clients that we were able to correct
+before any of our members saw them.&lt;/p&gt;
+
+&lt;h2 id="you-didnt-actually-want-css-in-there-did-you"&gt;You Didn’t Actually Want CSS in There, Did You?&lt;/h2&gt;
+
+&lt;p&gt;As we were about to ship, we ran into a showstopper: Gmail ignores any linked
+stylesheets or &lt;code&gt;style&lt;/code&gt; elements in your email. The best practice for styling
+HTML in an email is to use inline style attributes (for example &lt;code&gt;&amp;lt;p style="color:
+font-size: 16px; font-weight: bold"&amp;gt;…&amp;lt;/p&amp;gt;&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;Unwilling to perform this madness, we went out in search for a tool which would
+automatically convert our external stylesheets to inline attributes, and found
+&lt;a href="https://github.com/premailer/actionmailer_inline_css"&gt;actionmailer_inline_css&lt;/a&gt;. It hooks into the ActionMailer lifecycle and runs
+the emails through &lt;a href="https://github.com/premailer/premailer/"&gt;premailer&lt;/a&gt; to parse the CSS and add inline styles when
+delivering. This saved us from having to muck up our code with inline styles
+and allowed us to still share CSS between our emails.&lt;/p&gt;
+
+&lt;h2 id="there-you-have-it"&gt;There You Have It&lt;/h2&gt;
+
+&lt;p&gt;It took a bit more work than we anticipated, but we’ve been happy with the
+result and the reaction from our members has been positive. Now that we’ve laid
+the groundwork, rolling out HTML versions for the rest of our notifications
+will hopefully be easier.&lt;/p&gt;
+
+</content>
+  </entry>
+  <entry>
+    <id>tag:developer.dribbble.com,2014-06-06:/blog/2014-06-06-throttle-record-creation/</id>
+    <title type="html">Throttle Record Creation in ActiveRecord</title>
+    <published>2014-06-06T12:00:00Z</published>
+    <updated>2014-06-06T12:00:00Z</updated>
+    <link rel="alternate" href="http://developer.dribbble.com/blog/2014-06-06-throttle-record-creation/">
+    <content type="html">
+&lt;p&gt;Throttling the creation of records is a component of our spam protection at
+Dribbble. There’s no sane reason for a user to create more than 10 comments in
+two minutes, or more than 100 comments in one day. We’ve had a method for
+setting these types of limits for a while, but we’ve extracted it into an
+open-source library, &lt;a href="https://github.com/dribbble/allowed"&gt;allowed&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id="example-usage"&gt;Example Usage&lt;/h2&gt;
+
+&lt;pre class="highlight"&gt;&lt;code class="language-ruby"&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Comment&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="no"&gt;ActiveRecord&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;Base&lt;/span&gt;
+  &lt;span class="n"&gt;belongs_to&lt;/span&gt; &lt;span class="ss"&gt;:screenshot&lt;/span&gt;
+  &lt;span class="n"&gt;belongs_to&lt;/span&gt; &lt;span class="ss"&gt;:user&lt;/span&gt;
+
+  &lt;span class="c1"&gt;# Custom scopes beyond default created_at attribute.&lt;/span&gt;
+  &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;per&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;day&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;scope&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;:user_id&lt;/span&gt;
+  &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="ss"&gt;per&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;day&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;scope&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="ss"&gt;:screenshot_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;:user_id&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+
+  &lt;span class="c1"&gt;# Custom error message.&lt;/span&gt;
+  &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;per&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;days&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;message&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;"Too many comments this week."&lt;/span&gt;
+
+  &lt;span class="c1"&gt;# Custom conditions.&lt;/span&gt;
+  &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;per&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;days&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;unless&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;:whitelisted_user?&lt;/span&gt;
+  &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;per&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;days&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;unless&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;admin?&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+
+  &lt;span class="c1"&gt;# Callbacks when limit is reached.&lt;/span&gt;
+  &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;per&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;minutes&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;callback&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;suspend!&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;per&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;minutes&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+    &lt;span class="n"&gt;comment&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;suspend!&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;whitelisted_user?&lt;/span&gt;
+    &lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;whitelisted?&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="n"&gt;screenshot&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id="future-development"&gt;Future Development&lt;/h2&gt;
+
+&lt;p&gt;Now that we’ve extracted it to make it a bit easier to work with, we’d like to
+support different methods of checking throttles. For example, a week long check
+would be better served using Redis over ActiveRecord. It helps to avoid extra
+queries on save for a rare condition that may never be met and it’s less
+important to be perfectly accurate, so it doesn’t matter if we lose the count.&lt;/p&gt;
+
+</content>
+  </entry>
+  <entry>
+    <id>tag:developer.dribbble.com,2013-10-12:/blog/2013-10-23-development-behind-the-design/</id>
+    <title type="html">Development Behind the Design</title>
+    <published>2013-10-12T12:00:00Z</published>
+    <updated>2013-10-12T12:00:00Z</updated>
+    <link rel="alternate" href="http://developer.dribbble.com/blog/2013-10-23-development-behind-the-design/">
+    <content type="html">
+&lt;p&gt;Did you know there is a ton of development behind Dribbble? Probably so, but
+you haven’t heard much about it before. We’ll be sharing what we’re working on
+behind the scenes, interviewing developers using the API, showing how we use
+libraries, extracting libraries from our code, and more.&lt;/p&gt;
+
+&lt;h2 id="behind-the-scenes"&gt;Behind the Scenes&lt;/h2&gt;
+
+&lt;p&gt;We have never been very public about what we’re actively developing or what we
+have planned for the future. While we aren’t guaranteeing we’ll be completely
+open, we would love to occasionally share the successes and failures we have
+while working on new features.&lt;/p&gt;
+
+&lt;h2 id="api-developers"&gt;API Developers&lt;/h2&gt;
+
+&lt;p&gt;Similar to &lt;a href="http://blog.dribbble.com/tagged/timeout/"&gt;Timeout&lt;/a&gt; interviews with designers we would like to talk with
+the developers who use our API. Beyond featuring products using the API it will
+hopefully help us learn more about how the API is used and help us plan for
+changes to it in the future. If you are interested, &lt;a href="mailto:tristan@dribbble.com?subject=API%20Developer"&gt;send me an e-mail&lt;/a&gt; with
+a brief description of how you are using it and any relevant links.&lt;/p&gt;
+
+&lt;h2 id="open-source"&gt;Open Source&lt;/h2&gt;
+
+&lt;p&gt;Considering Dribbble is built on Rails and uses over 60 open source libraries,
+we’d like to start extracting and sharing some of our code. We have a couple of
+ideas on libraries we’d love to share in addition to possible patches and
+example uses for existing libraries.&lt;/p&gt;
+
+</content>
+  </entry>
+</feed>
+
