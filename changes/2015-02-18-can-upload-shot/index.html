@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title>Introducing the Attachments API</title>
+  <title>Determine if User Can Upload a Shot</title>
 
   <link href="/css/application.css" rel="stylesheet" type="text/css">
 
@@ -40,12 +40,12 @@
   <div class="container">
     <article>
       
-        <div class="change" id="/changes/2014-06-19-attachments/">
-          <h1><a href="/changes/2014-06-19-attachments/">Introducing the Attachments API</a></h1>
+        <div class="change" id="/changes/2015-02-18-can-upload-shot/">
+          <h1><a href="/changes/2015-02-18-can-upload-shot/">Determine if User Can Upload a Shot</a></h1>
 
 <ul class="meta">
   <li class="published">
-    June 19, 2014
+    February 18, 2015
   </li>
   <li class="author">
     <a href="https://dribbble.com/tristandunn">Tristan Dunn</a>
@@ -54,15 +54,11 @@
 
 
           
-<p>We’ve added new endpoints for attachments. Listing attachments or retrieving a
-single attachment are available for any scope. Creating or deleting attachments
-requires the <code>upload</code> <a href="/v1/oauth/#scopes">scope</a>.</p>
+<p>User and team resources now include a <code>can_upload_shot</code> attribute that indicates
+if they can currently upload shot or not. While we currently limit users to <a href="http://help.dribbble.com/customer/portal/articles/1039419">24
+shots per month and five per day</a> you can check this attribute without the
+need to know the limits.</p>
 
-<p><a href="/v1/shots/attachments/#create-an-attachment">Creating an attachment</a> is also
-our first asynchronous endpoint, due to the processing required. Creating shots
-will behave similarly when added.</p>
-
-<p><a href="/v1/shots/attachments">Read the full documentation</a> to get started.</p>
 
         </div>
       
