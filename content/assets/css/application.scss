@@ -25,17 +25,16 @@ body > header {
 
   h1 {
     float: left;
-    margin: 20px 0;
     padding: 0;
 
     #logo {
       display: block;
       float: left;
-      background: url(/images/logo.png) no-repeat 0 0;
-      background-size: 75px 19px;
+      background: url(/images/logo.png) no-repeat 0 50%;
+      background-size: 76px 19px;
       color: #FFF;
-      width: 75px;
-      height: 19px;
+      width: 76px;
+      height: 50px;
       text-decoration: none !important;
       text-indent: -9999px;
 
@@ -45,25 +44,25 @@ body > header {
     }
 
     span#logo-meta {
-        float: left;
-        margin: 0 10px;
-        padding-left: 10px;
-        font-size: 18px;
-        line-height: 19px;
-        border-left: 1px solid rgba(255,255,255,.13);
+      float: left;
+      margin: 12px 10px;
+      padding-left: 10px;
+      font-size: 18px;
+      line-height: 26px;
+      border-left: 1px solid rgba(255,255,255,.13);
 
-        a {
-          color: #999;
+      a {
+        color: #999;
 
-          &:hover {
-            color: #ddd;
-          }
+        &:hover {
+          color: #ddd;
         }
       }
+    }
   }
 
   nav {
-    margin: 12px 0 0 16px;
+    margin: 7px 0 0 16px;
     float: left;
 
     li {
