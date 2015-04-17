@@ -183,7 +183,7 @@ $ curl -H "Authorization: Bearer OAUTH_TOKEN" https://api.dribbble.com/v1/user
 <h3 id="oauth2-token-sent-as-a-parameter">OAuth2 Token (sent as a parameter)</h3>
 
 <pre class="terminal">
-$ curl https://api.dribbble.com/v1/user?access_token=OAUTH_TOKEN
+$ curl "https://api.dribbble.com/v1/user?access_token=OAUTH_TOKEN"
 </pre>
 
 <h2 id="pagination">Pagination</h2>
@@ -194,7 +194,7 @@ can also set a custom page size up to 100 with the <code>per_page</code> paramet
 that for technical reasons not all endpoints respect the <code>per_page</code> parameter.</p>
 
 <pre class="terminal">
-$ curl https://api.dribbble.com/v1/user/followers?page=2&amp;per_page=100
+$ curl "https://api.dribbble.com/v1/user/followers?page=2&amp;per_page=100"
 </pre>
 
 <p>Note that omitting the <code>page</code> parameter will return the first page.</p>
@@ -377,7 +377,7 @@ in web pages by getting around cross domain issues. The response includes the
 same data output as the regular API, plus the relevant HTTP Header information.</p>
 
 <pre class="terminal">
-$ curl https://api.dribbble.com?callback=bar
+$ curl "https://api.dribbble.com?callback=bar"
 
 bar({
   "meta" : {
