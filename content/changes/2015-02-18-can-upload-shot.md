@@ -10,4 +10,4 @@ if they can currently upload shot or not. While we currently limit users to [24
 shots per month and five per day][1] you can check this attribute without the
 need to know the limits.
 
-[1]: http://help.dribbble.com/customer/portal/articles/1039419
+[1]: http://help.dribbble.com/#is-there-a-limit-to-how-many-shots-a-player-can-upload
